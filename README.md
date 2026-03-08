@@ -164,6 +164,7 @@ php artisan migrate
 
 ```env
 AI_USE_MOCK=true
+AI_API_URL=http://localhost:8000/api/mock/analyze
 ```
 
 **Docker環境の場合**
@@ -174,6 +175,7 @@ AI_USE_MOCK=true
 php:
   environment:
     AI_USE_MOCK: "true"
+    AI_API_URL: http://nginx/api/mock/analyze
 ```
 
 変更後、コンテナを再起動してください。
