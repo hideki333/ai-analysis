@@ -154,6 +154,68 @@ php artisan migrate
 
 ---
 
+## API切り替え方法
+
+### 本番API → モックAPIに切り替える場合
+
+**ローカル（php artisan serve）の場合**
+
+`.env` を変更してください。
+
+```env
+AI_USE_MOCK=true
+```
+
+**Docker環境の場合**
+
+`docker-compose.yml` の `environment` を変更してください。
+
+```yaml
+php:
+  environment:
+    AI_USE_MOCK: "true"
+```
+
+変更後、コンテナを再起動してください。
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+---
+
+### モックAPI → 本番APIに切り替える場合
+
+**ローカル（php artisan serve）の場合**
+
+`.env` を変更してください。
+
+```env
+AI_USE_MOCK=false
+AI_API_URL=https://example.com/
+```
+
+**Docker環境の場合**
+
+`docker-compose.yml` の `environment` を変更してください（Dockerはシステム環境変数が `.env` より優先されるため）。
+
+```yaml
+php:
+  environment:
+    AI_API_URL: https://example.com/
+    AI_USE_MOCK: "false"
+```
+
+変更後、コンテナを再起動してください。
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+---
+
 ## 画面の使い方
 
 1. 画像ファイルパスを入力する（例: `/image/d03f1d36ca69348c51aa/c413eac329e1c0d03/test.jpg`）
@@ -272,37 +334,6 @@ routes/
 | confidence | decimal(5,4) | YES | 判定の信頼度スコア（0〜1） |
 | request_timestamp | datetime(6) | YES | リクエスト送信日時 |
 | response_timestamp | datetime(6) | YES | レスポンス受信日時 |
-
----
-
-## 本番APIへの切り替え方法
-
-**ローカル（php artisan serve）の場合**
-
-`.env` を変更してください。
-
-```env
-AI_USE_MOCK=false
-AI_API_URL=https://example.com/
-```
-
-**Docker環境の場合**
-
-`docker-compose.yml` の `environment` を変更してください（Dockerはシステム環境変数が `.env` より優先されるため）。
-
-```yaml
-php:
-  environment:
-    AI_API_URL: https://example.com/
-    AI_USE_MOCK: "false"
-```
-
-変更後、コンテナを再起動してください。
-
-```bash
-docker compose down
-docker compose up -d
-```
 
 ---
 
