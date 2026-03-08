@@ -50,25 +50,33 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-**3. データベースの作成（SQLiteの場合）**
+**3. DB設定をSQLiteに変更**
+
+`.env.example` のデフォルトはMySQL（Docker用）です。ローカルで起動する場合は `.env` を以下に変更してください。
+
+```env
+DB_CONNECTION=sqlite
+```
+
+**5. データベースの作成（SQLiteの場合）**
 
 ```bash
 touch database/database.sqlite
 ```
 
-**4. マイグレーションの実行**
+**6. マイグレーションの実行**
 
 ```bash
 php artisan migrate
 ```
 
-**5. 開発サーバーの起動**
+**7. 開発サーバーの起動**
 
 ```bash
 php artisan serve --port=8000
 ```
 
-**6. ブラウザでアクセス**
+**8. ブラウザでアクセス**
 
 ```
 http://localhost:8000
@@ -107,15 +115,7 @@ docker compose exec php php artisan key:generate
 
 > `.env` がすでにある場合はスキップしてください。上書きすると設定が初期化されます。
 
-**4. DB設定の確認**
-
-`.env.example` のデフォルトはMySQL（Docker用）です。ローカル（php artisan serve）で起動する場合は `.env` を以下に変更してください。
-
-```env
-DB_CONNECTION=sqlite
-```
-
-**5. マイグレーションの実行**
+**4. マイグレーションの実行**
 
 ```bash
 docker compose exec php php artisan migrate
@@ -172,6 +172,7 @@ php artisan migrate
 
 ```env
 AI_USE_MOCK=true
+AI_API_URL=http://localhost:8000/api/mock/analyze
 ```
 
 **Docker環境の場合**
