@@ -164,7 +164,6 @@ php artisan migrate
 
 ```env
 AI_USE_MOCK=true
-AI_API_URL=http://localhost:8000/api/mock/analyze
 ```
 
 **Docker環境の場合**
