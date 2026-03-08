@@ -61,7 +61,13 @@ DB_CONNECTION=sqlite
 **5. データベースの作成（SQLiteの場合）**
 
 ```bash
+# Mac / Linux
 touch database/database.sqlite
+```
+
+```powershell
+# Windows（PowerShell）
+New-Item database/database.sqlite
 ```
 
 **6. マイグレーションの実行**
