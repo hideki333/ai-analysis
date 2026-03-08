@@ -107,13 +107,21 @@ docker compose exec php php artisan key:generate
 
 > `.env` がすでにある場合はスキップしてください。上書きすると設定が初期化されます。
 
-**4. マイグレーションの実行**
+**4. DB設定の確認**
+
+`.env.example` のデフォルトはMySQL（Docker用）です。ローカル（php artisan serve）で起動する場合は `.env` を以下に変更してください。
+
+```env
+DB_CONNECTION=sqlite
+```
+
+**5. マイグレーションの実行**
 
 ```bash
 docker compose exec php php artisan migrate
 ```
 
-**5. ブラウザでアクセス**
+**6. ブラウザでアクセス**
 
 ```
 http://localhost:8000
