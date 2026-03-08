@@ -34,7 +34,7 @@ class AiAnalysisService
             // AI_USE_MOCK=false（Docker）: 実際にHTTPリクエストを送信する
             $body = $this->useMock
                 ? $this->callMockDirectly($mockMode)
-                : $this->callApi($imagePath, $mockMode);
+                : $this->callApi($imagePath);
 
             $responseTimestamp = Carbon::now();
 
@@ -92,11 +92,10 @@ class AiAnalysisService
      *
      * @throws \RuntimeException HTTPエラーステータスの場合
      */
-    private function callApi(string $imagePath, string $mockMode): ?array
+    private function callApi(string $imagePath): ?array
     {
         $response = Http::timeout(30)->post($this->apiUrl, [
-            'image_path'  => $imagePath,
-            'mock_result' => $mockMode,
+            'image_path' => $imagePath,
         ]);
 
         if ($response->failed()) {
