@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI画像分析システム - ファイル構成・説明</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #f5f6fa; color: #2d3436; line-height: 1.7; }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff;
+            padding: 40px 0;
+            text-align: center;
+        }
+        header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        header p  { font-size: 0.95rem; opacity: .85; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+        /* セクション */
+        .section { margin-bottom: 48px; }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* 概要カード */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .summary-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .summary-card .icon { font-size: 2rem; margin-bottom: 8px; }
+        .summary-card .label { font-size: .8rem; color: #888; margin-bottom: 4px; }
+        .summary-card .value { font-size: 1rem; font-weight: 700; color: #2c3e50; }
+
+        /* フロー */
+        .flow {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .flow-step {
+            flex: 1;
+            min-width: 130px;
+            text-align: center;
+            padding: 12px 8px;
+        }
+        .flow-step .step-box {
+            background: #eaf4fd;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 10px 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            color: #2980b9;
+        }
+        .flow-step .step-sub {
+            font-size: .72rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        .flow-arrow {
+            font-size: 1.4rem;
+            color: #3498db;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+        .flow-step.mock .step-box {
+            background: #fef9e7;
+            border-color: #f39c12;
+            color: #d68910;
+        }
+        .flow-step.db .step-box {
+            background: #eafaf1;
+            border-color: #27ae60;
+            color: #1e8449;
+        }
+
+        /* ファイル一覧テーブル */
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            font-size: .88rem;
+        }
+        .file-table th {
+            background: #2c3e50;
+            color: #fff;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .file-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .file-table tr:last-child td { border-bottom: none; }
+        .file-table tr:hover td { background: #f8f9fa; }
+        .file-table .path {
+            font-family: 'Consolas', monospace;
+            font-size: .82rem;
+            color: #c0392b;
+            white-space: nowrap;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: .72rem;
+            font-weight: 600;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+        .tag-new     { background: #d4edda; color: #155724; }
+        .tag-mod     { background: #fff3cd; color: #856404; }
+        .tag-migrate { background: #d1ecf1; color: #0c5460; }
+
+        /* ファイル詳細カード */
+        .file-cards { display: flex; flex-direction: column; gap: 16px; }
+        .file-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            overflow: hidden;
+        }
+        .file-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            user-select: none;
+        }
+        .file-card-header:hover { background: #eef2f7; }
+        .file-card-header .fc-path {
+            font-family: 'Consolas', monospace;
+            font-size: .85rem;
+            color: #c0392b;
+            flex: 1;
+        }
+        .file-card-header .fc-toggle {
+            font-size: 1rem;
+            color: #aaa;
+            transition: transform .2s;
+        }
+        .file-card-body { padding: 16px 20px; display: none; }
+        .file-card.open .file-card-body { display: block; }
+        .file-card.open .fc-toggle { transform: rotate(180deg); }
+
+        .desc-title { font-weight: 700; margin-bottom: 6px; color: #2c3e50; }
+        .desc-text  { font-size: .88rem; color: #555; margin-bottom: 12px; }
+        .desc-list  { font-size: .85rem; color: #555; padding-left: 20px; }
+        .desc-list li { margin-bottom: 4px; }
+
+        code {
+            font-family: 'Consolas', monospace;
+            background: #f4f4f4;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: .85em;
+            color: #c0392b;
+        }
+
+        /* DBスキーマ */
+        .schema-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .schema-table th {
+            background: #27ae60;
+            color: #fff;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .schema-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .schema-table tr:last-child td { border-bottom: none; }
+        .schema-table .col-name { font-family: 'Consolas', monospace; font-weight: 600; color: #1e8449; }
+        .schema-table .col-pk  { color: #e67e22; font-weight: 700; font-size: .75rem; }
+
+        /* レスポンス仕様 */
+        .resp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .resp-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            overflow: hidden;
+        }
+        .resp-card-header {
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: .9rem;
+        }
+        .resp-card-header.success-h { background: #d4edda; color: #155724; }
+        .resp-card-header.failure-h { background: #f8d7da; color: #721c24; }
+        .resp-card-header.invalid-h { background: #fff3cd; color: #856404; }
+        .resp-card pre {
+            padding: 14px 16px;
+            font-family: 'Consolas', monospace;
+            font-size: .8rem;
+            background: #fafafa;
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* バリデーション一覧 */
+        .validation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            font-size: .85rem;
+        }
+        .validation-table th {
+            background: #8e44ad;
+            color: #fff;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .validation-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .validation-table tr:last-child td { border-bottom: none; }
+        .check { color: #27ae60; font-weight: 700; }
+
+        /* 起動方法 */
+        .steps { display: flex; flex-direction: column; gap: 12px; }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            align-items: flex-start;
+        }
+        .step-num {
+            background: #3498db;
+            color: #fff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .85rem;
+            flex-shrink: 0;
+        }
+        .step-content .step-title { font-weight: 700; margin-bottom: 4px; font-size: .9rem; }
+        .step-content pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: .82rem;
+            margin-top: 6px;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: .8rem;
+            color: #aaa;
+        }
+
+        @media (max-width: 640px) {
+            .resp-grid { grid-template-columns: 1fr; }
+            .flow { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AI画像分析システム</h1>
+    <p>Laravel 12 + SQLite / MySQL（Docker）&nbsp;|&nbsp; ファイル構成・設計説明ドキュメント</p>
+</header>
+
+<div class="container">
+
+    <!-- 概要 -->
+    <div class="section">
+        <div class="section-title">システム概要</div>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="icon">🖼️</div>
+                <div class="label">入力</div>
+                <div class="value">画像ファイルパス</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">🤖</div>
+                <div class="label">処理</div>
+                <div class="value">AI分析APIへ送信</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">💾</div>
+                <div class="label">保存</div>
+                <div class="value">分析結果をDBへ記録</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">🔧</div>
+                <div class="label">モック</div>
+                <div class="value">仮想APIを内部実装</div>
+            </div>
+        </div>
+        <p style="font-size:.9rem; color:#555;">
+            実際には存在しない外部AI分析APIを想定し、同一Laravelアプリ内にモックAPIを実装しています。
+            <code>AI_API_URL</code> を変更するだけで本番APIへ切り替えが可能な設計です。
+        </p>
+    </div>
+
+    <!-- 処理フロー -->
+    <div class="section">
+        <div class="section-title">処理フロー</div>
+        <div class="flow">
+            <div class="flow-step">
+                <div class="step-box">ブラウザ<br>（UI画面）</div>
+                <div class="step-sub">画像パス入力<br>レスポンス種別選択</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-box">AiAnalysis<br>Controller</div>
+                <div class="step-sub">バリデーション<br>Serviceへ委譲</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-box">AiAnalysis<br>Service</div>
+                <div class="step-sub">API呼び出し<br>レスポンス検証</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step mock">
+                <div class="step-box">MockApi<br>Controller</div>
+                <div class="step-sub">仮想APIレスポンス<br>（同一アプリ内）</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step db">
+                <div class="step-box">ai_analysis<br>_log テーブル</div>
+                <div class="step-sub">結果をDBへ保存</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ファイル一覧 -->
+    <div class="section">
+        <div class="section-title">作成・変更ファイル一覧</div>
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>ファイルパス</th>
+                    <th>種別</th>
+                    <th>役割</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="path">app/Services/AiAnalysisService.php</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>APIリクエスト送信・レスポンス検証・DBへの保存を担うコアロジック</td>
+                </tr>
+                <tr>
+                    <td class="path">app/Http/Controllers/AiAnalysisController.php</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>UI画面の表示とフォーム送信の受付。Serviceに処理を委譲する</td>
+                </tr>
+                <tr>
+                    <td class="path">app/Http/Controllers/MockApiController.php</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>外部AI分析APIのモック。HTTP経由でも呼び出せる仮想エンドポイント</td>
+                </tr>
+                <tr>
+                    <td class="path">app/Models/AiAnalysisLog.php</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>ai_analysis_logテーブルに対応するEloquentモデル</td>
+                </tr>
+                <tr>
+                    <td class="path">database/migrations/****_create_ai_analysis_log_table.php</td>
+                    <td><span class="tag tag-migrate">Migration</span></td>
+                    <td>ai_analysis_logテーブルのスキーマ定義</td>
+                </tr>
+                <tr>
+                    <td class="path">resources/views/analysis/index.blade.php</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>画像パス入力フォームと分析ログ一覧を表示するUI画面</td>
+                </tr>
+                <tr>
+                    <td class="path">routes/web.php</td>
+                    <td><span class="tag tag-mod">変更</span></td>
+                    <td>UIルートとモックAPIルートの追加</td>
+                </tr>
+                <tr>
+                    <td class="path">config/services.php</td>
+                    <td><span class="tag tag-mod">変更</span></td>
+                    <td>ai_analysisサービスのURL設定を追加</td>
+                </tr>
+                <tr>
+                    <td class="path">bootstrap/app.php</td>
+                    <td><span class="tag tag-mod">変更</span></td>
+                    <td>モックAPIエンドポイントをCSRF検証の対象外に設定</td>
+                </tr>
+                <tr>
+                    <td class="path">.env</td>
+                    <td><span class="tag tag-mod">変更</span></td>
+                    <td>AI_API_URL・AI_USE_MOCKの追加（ローカル/Docker切り替え）</td>
+                </tr>
+                <tr>
+                    <td class="path">docker-compose.yml</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>Nginx・PHP-FPM・MySQLの3コンテナ構成を定義</td>
+                </tr>
+                <tr>
+                    <td class="path">docker/php/Dockerfile</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>PHP 8.2-FPM + PDO MySQL + Composer のカスタムイメージ定義</td>
+                </tr>
+                <tr>
+                    <td class="path">docker/nginx/default.conf</td>
+                    <td><span class="tag tag-new">新規</span></td>
+                    <td>NginxのLaravel向け設定（PHP-FPMへのfastcgi_pass）</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ファイル詳細 -->
+    <div class="section">
+        <div class="section-title">ファイル詳細説明</div>
+        <div class="file-cards">
+
+            <div class="file-card open">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">app/Services/AiAnalysisService.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">このシステムのコアロジック。APIへのリクエスト送信からレスポンス検証、DBへの保存まで一貫して担当します。</p>
+                    <p class="desc-title">主なメソッド</p>
+                    <ul class="desc-list">
+                        <li><code>analyze(string $imagePath, string $mockMode)</code> ― 外部またはモックAPIを呼び出し、検証後にDBへ保存</li>
+                        <li><code>validateResponse(?array $body)</code> ― API仕様に沿ったレスポンス構造を検証。異常があればエラー理由を返す</li>
+                        <li><code>callApi(string $imagePath, string $mockMode)</code> ― HTTPリクエストを送信（Docker環境など、マルチプロセス環境で使用）。HTTPエラー時は例外をスロー</li>
+                        <li><code>callMockDirectly(string $mode)</code> ― モックレスポンスを直接生成（HTTP通信なし）</li>
+                    </ul>
+                    <br>
+                    <p class="desc-title">ポイント</p>
+                    <ul class="desc-list">
+                        <li><code>php artisan serve</code> はシングルスレッドのため、自分自身へHTTPリクエストを送るとデッドロックになる</li>
+                        <li><code>AI_USE_MOCK=true</code>（ローカル開発）：HTTP通信せず <code>callMockDirectly()</code> を直接呼び出してデッドロックを回避</li>
+                        <li><code>AI_USE_MOCK=false</code>（Docker環境）：<code>callApi()</code> でHTTPリクエストを送信。Nginx経由でモックAPIにアクセス</li>
+                        <li>本番API切り替えは <code>.env</code> の <code>AI_API_URL</code> を変更し、<code>AI_USE_MOCK=false</code> にするだけ</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">app/Http/Controllers/AiAnalysisController.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">UI画面に関わるリクエストを受け付けるコントローラ。ロジックは持たず <code>AiAnalysisService</code> に委譲します。</p>
+                    <p class="desc-title">メソッド</p>
+                    <ul class="desc-list">
+                        <li><code>index()</code> ― 分析フォームと直近20件のログ一覧を表示</li>
+                        <li><code>analyze(Request $request)</code> ― image_path・mock_result をバリデーションしてServiceを呼び出し、結果をフラッシュメッセージで返す</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">app/Http/Controllers/MockApiController.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">存在しない外部AI分析APIを模倣する仮想エンドポイントです。<code>POST /api/mock/analyze</code> でHTTPからも呼び出せます。</p>
+                    <p class="desc-title">レスポンス仕様</p>
+                    <ul class="desc-list">
+                        <li><code>mock_result=success</code>：必ず成功レスポンスを返す。class は 1〜5 のランダム整数、confidence は 0.5000〜0.9999 のランダム小数</li>
+                        <li><code>mock_result=failure</code>：必ず失敗レスポンスを返す</li>
+                        <li><code>mock_result=invalid</code>：仕様外レスポンス（<code>estimated_data</code> 欠落）を返す。バリデーション検証用</li>
+                    </ul>
+                    <br>
+                    <p class="desc-title">注意</p>
+                    <ul class="desc-list">
+                        <li>Docker環境では <code>http://nginx/api/mock/analyze</code> でHTTP経由アクセス。ローカルでは <code>AiAnalysisService</code> が直接メソッドを呼び出す（デッドロック回避）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">app/Models/AiAnalysisLog.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text"><code>ai_analysis_log</code> テーブルに対応するEloquentモデル。</p>
+                    <p class="desc-title">設定</p>
+                    <ul class="desc-list">
+                        <li><code>$timestamps = false</code> ― Laravelデフォルトの created_at/updated_at は使わず、仕様のカラム（request_timestamp / response_timestamp）を使用</li>
+                        <li><code>$fillable</code> ― 一括代入を許可するカラムを明示的に定義（マスアサインメント保護）</li>
+                        <li><code>$casts</code> ― DBの値を適切なPHP型に自動変換（boolean, integer, decimal, datetime）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-migrate">Migration</span>
+                    <span class="fc-path">database/migrations/****_create_ai_analysis_log_table.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">課題で指定されたMySQLのCREATE文をLaravelマイグレーション形式に変換したものです。SQLite・MySQL双方で動作します。</p>
+                    <p class="desc-title">MySQLとの主な違い</p>
+                    <ul class="desc-list">
+                        <li><code>tinyint(1)</code> → <code>$table->boolean()</code></li>
+                        <li><code>decimal(5,4)</code> → <code>$table->decimal('confidence', 5, 4)</code></li>
+                        <li><code>datetime(6)</code> → <code>$table->dateTime('...', 6)</code>（マイクロ秒対応）</li>
+                        <li>AUTO_INCREMENT の id → <code>$table->id()</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">resources/views/analysis/index.blade.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">ユーザーが操作するUI画面。外部CSSライブラリ不使用でインラインスタイルのみで実装しています。</p>
+                    <p class="desc-title">構成要素</p>
+                    <ul class="desc-list">
+                        <li>フラッシュメッセージ（成功 / 失敗をカラーで表示）</li>
+                        <li>画像パス入力フォーム</li>
+                        <li>モックレスポンス選択ラジオボタン（Success / Failure / 異常レスポンス）</li>
+                        <li>分析ログ一覧テーブル（直近20件、Success/Failureバッジ付き）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-mod">変更</span>
+                    <span class="fc-path">routes/web.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">追加したルート</p>
+                    <ul class="desc-list">
+                        <li><code>GET /</code> → <code>AiAnalysisController@index</code> ― フォーム画面</li>
+                        <li><code>POST /analyze</code> → <code>AiAnalysisController@analyze</code> ― 分析実行</li>
+                        <li><code>POST /api/mock/analyze</code> → <code>MockApiController@analyze</code> ― モックAPI（CSRF除外）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-new">新規</span>
+                    <span class="fc-path">docker-compose.yml / docker/php/Dockerfile / docker/nginx/default.conf</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">役割</p>
+                    <p class="desc-text">Docker環境でシステムを起動するための設定ファイル群。Nginx（リバースプロキシ）・PHP-FPM（アプリ実行）・MySQL（DB）の3コンテナ構成です。</p>
+                    <p class="desc-title">ポイント</p>
+                    <ul class="desc-list">
+                        <li>phpコンテナの環境変数 <code>AI_API_URL=http://nginx/api/mock/analyze</code> でコンテナ間通信を実現</li>
+                        <li>phpコンテナの環境変数 <code>AI_USE_MOCK=false</code> でHTTP通信モードに切り替え</li>
+                        <li><code>http://localhost:8000</code> でブラウザからアクセス可能（ポート8000:80でNginxに転送）</li>
+                        <li>MySQLデータは <code>mysql_data</code> Volumeで永続化</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-card-header" onclick="toggle(this)">
+                    <span class="tag tag-mod">変更</span>
+                    <span class="fc-path">.env / config/services.php</span>
+                    <span class="fc-toggle">▼</span>
+                </div>
+                <div class="file-card-body">
+                    <p class="desc-title">追加した設定</p>
+                    <ul class="desc-list">
+                        <li><code>AI_API_URL</code> ― APIのエンドポイントURL。本番APIへの切り替え時に変更する（ローカルは <code>http://localhost:8000/api/mock/analyze</code>、Docker内部は <code>http://nginx/api/mock/analyze</code>）</li>
+                        <li><code>AI_USE_MOCK</code> ― <code>true</code> のとき HTTP通信せず直接モックメソッドを呼び出す（ローカル用）。<code>false</code> のとき <code>AI_API_URL</code> にHTTPリクエストを送信（Docker用）</li>
+                        <li><code>config('services.ai_analysis.url')</code> / <code>config('services.ai_analysis.use_mock')</code> ― <code>.env</code> の値をServiceから参照するためのブリッジ</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DBスキーマ -->
+    <div class="section">
+        <div class="section-title">DBスキーマ（ai_analysis_log）</div>
+        <table class="schema-table">
+            <thead>
+                <tr>
+                    <th>カラム名</th>
+                    <th>型</th>
+                    <th>NULL</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="col-name">id <span class="col-pk">PK</span></td>
+                    <td>int AUTO_INCREMENT</td>
+                    <td>NO</td>
+                    <td>レコードの一意識別子</td>
+                </tr>
+                <tr>
+                    <td class="col-name">image_path</td>
+                    <td>varchar(255)</td>
+                    <td>YES</td>
+                    <td>リクエストに使用した画像ファイルパス</td>
+                </tr>
+                <tr>
+                    <td class="col-name">success</td>
+                    <td>tinyint(1)</td>
+                    <td>NO</td>
+                    <td>APIが成功を返したか（1=成功 / 0=失敗）</td>
+                </tr>
+                <tr>
+                    <td class="col-name">message</td>
+                    <td>varchar(255)</td>
+                    <td>YES</td>
+                    <td>APIのメッセージ（成功時は"success"、失敗・異常時はエラー内容）</td>
+                </tr>
+                <tr>
+                    <td class="col-name">class</td>
+                    <td>int</td>
+                    <td>YES</td>
+                    <td>AIが判定した分類クラス番号（success=true のときのみ格納）</td>
+                </tr>
+                <tr>
+                    <td class="col-name">confidence</td>
+                    <td>decimal(5,4)</td>
+                    <td>YES</td>
+                    <td>判定の信頼度スコア 0〜1（success=true のときのみ格納）</td>
+                </tr>
+                <tr>
+                    <td class="col-name">request_timestamp</td>
+                    <td>datetime(6)</td>
+                    <td>YES</td>
+                    <td>APIリクエストを送信した日時（マイクロ秒精度）</td>
+                </tr>
+                <tr>
+                    <td class="col-name">response_timestamp</td>
+                    <td>datetime(6)</td>
+                    <td>YES</td>
+                    <td>APIレスポンスを受信した日時（マイクロ秒精度）</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- レスポンスパターン -->
+    <div class="section">
+        <div class="section-title">APIレスポンスパターンと保存処理</div>
+        <div class="resp-grid">
+            <div class="resp-card">
+                <div class="resp-card-header success-h">Success（正常成功）</div>
+                <pre>{
+  "success": true,
+  "message": "success",
+  "estimated_data": {
+    "class": 3,
+    "confidence": 0.8683
+  }
+}</pre>
+                <div style="padding:10px 16px; font-size:.82rem; color:#555;">
+                    → class・confidence をDBに保存
+                </div>
+            </div>
+            <div class="resp-card">
+                <div class="resp-card-header failure-h">Failure（API側の失敗）</div>
+                <pre>{
+  "success": false,
+  "message": "Analysis failed due to
+    an internal error."
+}</pre>
+                <div style="padding:10px 16px; font-size:.82rem; color:#555;">
+                    → success=false、messageをDBに保存
+                </div>
+            </div>
+            <div class="resp-card">
+                <div class="resp-card-header invalid-h">異常レスポンス（仕様外）</div>
+                <pre>{
+  "success": true,
+  "message": "success"
+  // estimated_data が欠落
+}</pre>
+                <div style="padding:10px 16px; font-size:.82rem; color:#555;">
+                    → validateResponse() が検出し<br>success=false・「不正なレスポンス:〜」で保存
+                </div>
+            </div>
+            <div class="resp-card">
+                <div class="resp-card-header invalid-h">接続エラー / 非JSONレスポンス</div>
+                <pre>// タイムアウト・HTTP 5xx・
+// HTMLエラーページなど</pre>
+                <div style="padding:10px 16px; font-size:.82rem; color:#555;">
+                    → catch ブロックで捕捉し<br>success=false・「API接続エラー:〜」で保存
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- レスポンス検証ルール -->
+    <div class="section">
+        <div class="section-title">レスポンス検証ルール（validateResponse）</div>
+        <table class="validation-table">
+            <thead>
+                <tr>
+                    <th>チェック対象</th>
+                    <th>検証内容</th>
+                    <th>異常時のmessage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>レスポンスボディ全体</td>
+                    <td>null でないこと（有効なJSON）</td>
+                    <td>レスポンスがJSONではありません</td>
+                </tr>
+                <tr>
+                    <td><code>success</code></td>
+                    <td>フィールドが存在し、bool型であること</td>
+                    <td>'success' フィールドがbool型で存在しません</td>
+                </tr>
+                <tr>
+                    <td><code>message</code></td>
+                    <td>フィールドが存在し、文字列であること</td>
+                    <td>'message' フィールドが文字列で存在しません</td>
+                </tr>
+                <tr>
+                    <td><code>estimated_data</code></td>
+                    <td>success=true のとき、配列で存在すること</td>
+                    <td>success=true なのに 'estimated_data' が存在しません</td>
+                </tr>
+                <tr>
+                    <td><code>estimated_data.class</code></td>
+                    <td>success=true のとき、整数で存在すること</td>
+                    <td>'estimated_data.class' が整数で存在しません</td>
+                </tr>
+                <tr>
+                    <td><code>estimated_data.confidence</code></td>
+                    <td>success=true のとき、0〜1の数値で存在すること</td>
+                    <td>'estimated_data.confidence' が0〜1の数値で存在しません</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 起動方法 -->
+    <div class="section">
+        <div class="section-title">起動・確認方法</div>
+
+        <p style="font-weight:700; margin-bottom:12px; color:#2c3e50;">【A】ローカル開発（php artisan serve）</p>
+        <div class="steps" style="margin-bottom:32px;">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">依存関係インストール＆セットアップ</div>
+                    <pre>cd {プロジェクトパス}/ai-analysis
+composer install
+php artisan key:generate
+php artisan migrate</pre>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">開発サーバーを起動</div>
+                    <pre>php artisan serve</pre>
+                    <p style="font-size:.82rem; color:#888; margin-top:6px;">※ .env の AI_USE_MOCK=true でモックを直接呼び出し（デッドロック回避）</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">ブラウザでアクセス</div>
+                    <pre>http://localhost:8000</pre>
+                </div>
+            </div>
+        </div>
+
+        <p style="font-weight:700; margin-bottom:12px; color:#2c3e50;">【B】Docker環境</p>
+        <div class="steps" style="margin-bottom:32px;">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">コンテナをビルド＆起動</div>
+                    <pre>cd {プロジェクトパス}/ai-analysis
+docker compose up -d --build</pre>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">Composerインストール＆マイグレーション</div>
+                    <pre>docker compose exec php composer install
+docker compose exec php php artisan key:generate
+docker compose exec php php artisan migrate</pre>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">ブラウザでアクセス</div>
+                    <pre>http://localhost:8000</pre>
+                    <p style="font-size:.82rem; color:#888; margin-top:6px;">※ docker-compose.yml で AI_USE_MOCK=false に設定済み。Nginx経由でモックAPIへHTTP通信</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">コンテナの停止</div>
+                    <pre>docker compose down</pre>
+                </div>
+            </div>
+        </div>
+
+        <p style="font-weight:700; margin-bottom:12px; color:#2c3e50;">【共通】本番APIへ切り替える場合</p>
+        <div class="steps">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">.env を変更するだけ</div>
+                    <pre>AI_API_URL=https://example.com/api/analyze
+AI_USE_MOCK=false</pre>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">モックAPIを直接テストする場合（curl）</div>
+                    <pre>curl -X POST http://localhost:8000/api/mock/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"image_path":"/image/test.jpg","mock_result":"success"}'</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>AI画像分析システム &mdash; ファイル構成・設計説明ドキュメント</footer>
+
+<script>
+    function toggle(header) {
+        const card = header.closest('.file-card');
+        card.classList.toggle('open');
+    }
+</script>
+
+</body>
+</html>
